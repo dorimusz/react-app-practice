@@ -1,0 +1,8 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  gap: 1rem;
+  align-items: center;
+  width: 50vw;
+}
