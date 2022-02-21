@@ -42,47 +42,57 @@ function App() {
         todo: todo
       }, {
         headers: {
-          authorization: authUser + ':::' + authPass
+          authorization: localStorage.getItem("sessionId")
         }
       })
       alert("Todo added")
       setTodo('')
     } catch (err) {
-      alert('Ooops... something went wrong')
+      if (err.response.status === 401) {
+        alert("Session ended");
+        return setSectionToAppear('login')
+      }
+      return alert('Ooops... something went wrong');
     }
-  }
+  };
 
   const login = async () => {
     try {
-      await http.post('http://localhost:4000/api/login', {
+      const response = await http.post('http://localhost:4000/api/login', {
       }, {
         headers: {
           authorization: authUser + ':::' + authPass
         }
       })
       setSectionToAppear('todos')
-      localStorage.setItem('user', authUser)
-      localStorage.setItem('password', authPass)
+      localStorage.setItem('sessionId', response.data)
 
     } catch (err) {
       alert('Wrong username or password')
     }
   }
 
-  const signOut = () => {
-    localStorage.removeItem('user', authUser)
-    localStorage.removeItem('password', authPass)
-
-    setAuthUser('')
-    setAuthPass('')
-    setSectionToAppear('login')
+  const signOut = async () => {
+    try {
+      const response = await http.delete("http://localhost:4000/api/logout", {
+        headers: {
+          authorization: localStorage.getItem('sessionId')
+        }
+      }, {});
+      console.log(response)
+    } catch (err) {
+      console.log(err.response)
+    } finally {
+      localStorage.removeItem('sessionId')
+      setAuthUser('')
+      setAuthPass('')
+      setSectionToAppear('login')
+    };
   }
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    const password = localStorage.getItem('password');
-    setAuthUser(user);
-    setAuthPass(password)
+    const sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) return;
     setSectionToAppear('todos')
   }, [])
 
